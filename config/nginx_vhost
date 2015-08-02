@@ -1,0 +1,33 @@
+server {
+  listen 80;
+  server_name  	extranet.netmessage.lan;
+	root 		/var/www/netmessage-extranet/public;
+	index index.php;
+
+  client_max_body_size 500M;
+
+  charset utf-8;
+
+  access_log  /var/log/extranet.netmessage.lan.access.log;
+  error_log   /var/log/extranet.netmessage.lan.error.log;
+
+	location / {
+		fastcgi_param PHP_VALUE "upload_max_filesize = 500M \n post_max_size=501M";
+		try_files	$uri $uri/ @handler;
+		expires		30d;
+	}
+
+	location @handler {
+		fastcgi_param PHP_VALUE "upload_max_filesize = 500M \n post_max_size=501M";
+		rewrite ^ /index.php?/$request_uri;
+	}
+
+  # pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+  location ~ \index.php$ {
+      fastcgi_pass   unix:/var/run/php5-fpm.sock;
+      fastcgi_param FUEL_ENV local;
+      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+      include fastcgi_params;
+      fastcgi_param PHP_VALUE "upload_max_filesize = 500M \n post_max_size=501M";
+  }
+}
